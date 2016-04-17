@@ -35,6 +35,7 @@ crop.factory('cropAreaCircle', ['cropArea', function(CropArea) {
     this._areaIsHover = false;
     this._boxResizeIsDragging = false;
     this._areaIsDragging = false;
+    this._ratio = 1;
   };
 
   CropAreaCircle.prototype = new CropArea();
@@ -568,6 +569,7 @@ crop.factory('cropAreaSquare', ['cropArea', function(CropArea) {
     this._areaIsHover = false;
     this._resizeCtrlIsDragging = -1;
     this._areaIsDragging = false;
+    this._ratio = 1;
   };
 
   CropAreaSquare.prototype = new CropArea();
@@ -815,7 +817,9 @@ crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
     this._size = Math.max(this._minSize, this._size);
     this._dontDragOutside();
   };
-
+  CropArea.prototype.setRatio = function(ratio){
+    this._ratio = ratio;
+  }
   /* FUNCTIONS */
   CropArea.prototype._dontDragOutside=function() {
     var h=this._ctx.canvas.height,
@@ -2057,6 +2061,12 @@ crop.factory('cropHost', ['$document', 'cropAreaCircle', 'cropAreaSquare', 'crop
         resImgQuality = quality;
       }
     };
+    
+    this.setRatio=function(ratio) {
+      if(ratio > 0){
+        theArea.setRatio(ratio);
+      }
+    }
 
     this.setAreaType=function(type) {
       var curSize=theArea.getSize(),
@@ -2227,6 +2237,10 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function($timeo
       });
       scope.$watch('areaType',function(){
         cropHost.setAreaType(scope.areaType);
+        updateResultImage(scope);
+      });
+      scope.$watch('ratio', function(){
+        cropHost.setRatio(scope.ratio);
         updateResultImage(scope);
       });
       scope.$watch('areaMinSize',function(){

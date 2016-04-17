@@ -307,6 +307,12 @@ crop.factory('cropHost', ['$document', 'cropAreaCircle', 'cropAreaSquare', 'crop
         resImgQuality = quality;
       }
     };
+    
+    this.setRatio=function(ratio) {
+      if(ratio > 0){
+        theArea.setRatio(ratio);
+      }
+    }
 
     this.setAreaType=function(type) {
       var curSize=theArea.getSize(),

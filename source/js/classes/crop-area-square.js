@@ -23,6 +23,7 @@ crop.factory('cropAreaSquare', ['cropArea', function(CropArea) {
     this._areaIsHover = false;
     this._resizeCtrlIsDragging = -1;
     this._areaIsDragging = false;
+    this._ratio = 1;
   };
 
   CropAreaSquare.prototype = new CropArea();

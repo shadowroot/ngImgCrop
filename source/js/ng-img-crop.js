@@ -83,6 +83,10 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function($timeo
         cropHost.setAreaType(scope.areaType);
         updateResultImage(scope);
       });
+      scope.$watch('ratio', function(){
+        cropHost.setRatio(scope.ratio);
+        updateResultImage(scope);
+      });
       scope.$watch('areaMinSize',function(){
         cropHost.setAreaMinSize(scope.areaMinSize);
         updateResultImage(scope);
