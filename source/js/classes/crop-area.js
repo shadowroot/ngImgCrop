@@ -58,6 +58,7 @@ crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
     this._dontDragOutside();
   };
   CropArea.prototype.setRatio = function(ratio){
+    console.log("Ratio change",ratio);
     this._ratio = ratio;
     this.draw=function() {
       // draw crop area

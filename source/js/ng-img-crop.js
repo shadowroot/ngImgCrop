@@ -6,7 +6,7 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function($timeo
     scope: {
       image: '=',
       resultImage: '=',
-
+      ratio: '=',
       changeOnFly: '=',
       areaType: '@',
       areaMinSize: '=',

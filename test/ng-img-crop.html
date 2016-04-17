@@ -79,13 +79,13 @@
   </div>
   <div>
     <button ng-click="imageDataURI=''">Reset Image</button>
-  </div>
-
+  </div></br />
+  Ratio <input ng-model="ratio" /><br />
   <div ng-if="enableCrop" class="cropArea" ng-class="{'big':size=='big', 'medium':size=='medium', 'small':size=='small'}">
     <img-crop image="imageDataURI"
               result-image="$parent.resImageDataURI"
               change-on-fly="changeOnFly"
-              ratio="0.5"
+              ratio="ratio"
               area-type="{{type}}"
               area-min-size="selMinSize"
               result-image-format="{{resImgFormat}}"

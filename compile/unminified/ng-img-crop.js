@@ -5,7 +5,7 @@
  * Copyright (c) 2016 Alex Kaul
  * License: MIT
  *
- * Generated at Sunday, April 17th, 2016, 4:14:45 PM
+ * Generated at Sunday, April 17th, 2016, 4:47:35 PM
  */
 (function() {
 'use strict';
@@ -818,6 +818,7 @@ crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
     this._dontDragOutside();
   };
   CropArea.prototype.setRatio = function(ratio){
+    console.log("Ratio change",ratio);
     this._ratio = ratio;
     this.draw=function() {
       // draw crop area
@@ -2167,7 +2168,7 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function($timeo
     scope: {
       image: '=',
       resultImage: '=',
-
+      ratio: '=',
       changeOnFly: '=',
       areaType: '@',
       areaMinSize: '=',
