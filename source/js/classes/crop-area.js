@@ -59,6 +59,7 @@ crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
   };
   CropArea.prototype.setRatio = function(ratio){
     this._ratio = ratio;
+    this._cropCanvas._ratio = ratio;
   }
   /* FUNCTIONS */
   CropArea.prototype._dontDragOutside=function() {

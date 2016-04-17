@@ -68,7 +68,7 @@ crop.factory('cropAreaRect', ['cropArea', function(CropArea) {
 
   CropAreaRect.prototype._drawArea=function(ctx,centerCoords,size, ratio){
     var hSize=size/2;
-    ctx.rect(centerCoords[0]-hSize*ratio,centerCoords[1]-hSize,size*ratio,size);
+    ctx.rect(centerCoords[0]-hSize*ratio,centerCoords[1]-hSize,size*this._ratio,size);
   };
 
   CropAreaRect.prototype.draw=function() {

@@ -23,6 +23,7 @@ crop.factory('cropAreaEllipse', ['cropArea', function(CropArea) {
     this._areaIsHover = false;
     this._boxResizeIsDragging = false;
     this._areaIsDragging = false;
+    this._ratio;
   };
 
   CropAreaEllipse.prototype = new CropArea();
@@ -49,9 +50,9 @@ crop.factory('cropAreaEllipse', ['cropArea', function(CropArea) {
            coord[1] > resizeIconCenterCoords[1] - hSize && coord[1] < resizeIconCenterCoords[1] + hSize);
   };
 
-  CropAreaEllipse.prototype._drawArea=function(ctx,centerCoords,size,ratio){
+  CropAreaEllipse.prototype._drawArea=function(ctx,centerCoords,size){
     
-    var width = ratio * size;
+    var width = this._ratio * size;
     var height = size;
     var centerX = centerCoords[0], centerY = centerCoords[1];
     ctx.moveTo(centerX, centerY - height/2);

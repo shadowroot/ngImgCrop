@@ -312,6 +312,7 @@ crop.factory('cropHost', ['$document', 'cropAreaCircle', 'cropAreaSquare', 'crop
       if(ratio > 0){
         theArea.setRatio(ratio);
       }
+      drawScene();
     }
 
     this.setAreaType=function(type) {
