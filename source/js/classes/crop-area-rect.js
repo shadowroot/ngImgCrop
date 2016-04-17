@@ -1,7 +1,7 @@
 'use strict';
 
-crop.factory('cropAreaSquare', ['cropArea', function(CropArea) {
-  var CropAreaSquare = function() {
+crop.factory('cropAreaRect', ['cropArea', function(CropArea) {
+  var CropAreaRect = function() {
     CropArea.apply(this, arguments);
 
     this._resizeCtrlBaseRadius = 10;
@@ -25,9 +25,9 @@ crop.factory('cropAreaSquare', ['cropArea', function(CropArea) {
     this._areaIsDragging = false;
   };
 
-  CropAreaSquare.prototype = new CropArea();
+  CropAreaRect.prototype = new CropArea();
 
-  CropAreaSquare.prototype._calcSquareCorners=function() {
+  CropAreaRect.prototype._calcSquareCorners=function() {
     var hSize=this._size/2;
     return [
       [this._x-hSize*this._ratio, this._y-hSize],
@@ -37,7 +37,7 @@ crop.factory('cropAreaSquare', ['cropArea', function(CropArea) {
     ];
   };
 
-  CropAreaSquare.prototype._calcSquareDimensions=function() {
+  CropAreaRect.prototype._calcSquareDimensions=function() {
     var hSize=this._size/2;
     return {
       left: this._x-hSize*this._ratio,
@@ -47,12 +47,12 @@ crop.factory('cropAreaSquare', ['cropArea', function(CropArea) {
     };
   };
 
-  CropAreaSquare.prototype._isCoordWithinArea=function(coord) {
+  CropAreaRect.prototype._isCoordWithinArea=function(coord) {
     var squareDimensions=this._calcSquareDimensions();
     return (coord[0]>=squareDimensions.left&&coord[0]<=squareDimensions.right&&coord[1]>=squareDimensions.top&&coord[1]<=squareDimensions.bottom);
   };
 
-  CropAreaSquare.prototype._isCoordWithinResizeCtrl=function(coord) {
+  CropAreaRect.prototype._isCoordWithinResizeCtrl=function(coord) {
     var resizeIconsCenterCoords=this._calcSquareCorners();
     var res=-1;
     for(var i=0,len=resizeIconsCenterCoords.length;i<len;i++) {
@@ -66,12 +66,12 @@ crop.factory('cropAreaSquare', ['cropArea', function(CropArea) {
     return res;
   };
 
-  CropAreaSquare.prototype._drawArea=function(ctx,centerCoords,size, ratio){
+  CropAreaRect.prototype._drawArea=function(ctx,centerCoords,size, ratio){
     var hSize=size/2;
     ctx.rect(centerCoords[0]-hSize*ratio,centerCoords[1]-hSize,size*ratio,size);
   };
 
-  CropAreaSquare.prototype.draw=function() {
+  CropAreaRect.prototype.draw=function() {
     CropArea.prototype.draw.apply(this, arguments);
 
     // draw move icon
@@ -85,7 +85,7 @@ crop.factory('cropAreaSquare', ['cropArea', function(CropArea) {
     }
   };
 
-  CropAreaSquare.prototype.processMouseMove=function(mouseCurX, mouseCurY) {
+  CropAreaRect.prototype.processMouseMove=function(mouseCurX, mouseCurY) {
     var cursor='default';
     var res=false;
 
@@ -172,7 +172,7 @@ crop.factory('cropAreaSquare', ['cropArea', function(CropArea) {
     return res;
   };
 
-  CropAreaSquare.prototype.processMouseDown=function(mouseDownX, mouseDownY) {
+  CropAreaRect.prototype.processMouseDown=function(mouseDownX, mouseDownY) {
     var isWithinResizeCtrl=this._isCoordWithinResizeCtrl([mouseDownX,mouseDownY]);
     if (isWithinResizeCtrl>-1) {
       this._areaIsDragging = false;
@@ -194,7 +194,7 @@ crop.factory('cropAreaSquare', ['cropArea', function(CropArea) {
     }
   };
 
-  CropAreaSquare.prototype.processMouseUp=function(/*mouseUpX, mouseUpY*/) {
+  CropAreaRect.prototype.processMouseUp=function(/*mouseUpX, mouseUpY*/) {
     if(this._areaIsDragging) {
       this._areaIsDragging = false;
       this._events.trigger('area-move-end');
@@ -211,5 +211,5 @@ crop.factory('cropAreaSquare', ['cropArea', function(CropArea) {
   };
 
 
-  return CropAreaSquare;
+  return CropAreaRect;
 }]);

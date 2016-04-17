@@ -13,6 +13,7 @@ crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
     this._x = 0;
     this._y = 0;
     this._size = 200;
+    this._ratio = 1;
   };
 
   /* GETTERS/SETTERS */
@@ -63,8 +64,8 @@ crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
         w=this._ctx.canvas.width;
     if(this._size>w) { this._size=w; }
     if(this._size>h) { this._size=h; }
-    if(this._x<this._size/2) { this._x=this._size/2; }
-    if(this._x>w-this._size/2) { this._x=w-this._size/2; }
+    if(this._x<(this._size/2)*this._ratio) { this._x=(this._size/2)*this._ratio; }
+    if(this._x>(w-(this._size/2)*this._ratio)) { this._x=w-this._size/2*this._ratio; }
     if(this._y<this._size/2) { this._y=this._size/2; }
     if(this._y>h-this._size/2) { this._y=h-this._size/2; }
   };
@@ -73,7 +74,7 @@ crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
 
   CropArea.prototype.draw=function() {
     // draw crop area
-    this._cropCanvas.drawCropArea(this._image,[this._x,this._y],this._size,this._drawArea);
+    this._cropCanvas.drawCropArea(this._image,[this._x,this._y],this._size,this._drawArea, this._ratio);
   };
 
   CropArea.prototype.processMouseMove=function() {};

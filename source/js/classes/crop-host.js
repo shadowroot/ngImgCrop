@@ -1,6 +1,6 @@
 'use strict';
 
-crop.factory('cropHost', ['$document', 'cropAreaCircle', 'cropAreaSquare', 'cropEXIF', function($document, CropAreaCircle, CropAreaSquare, cropEXIF) {
+crop.factory('cropHost', ['$document', 'cropAreaCircle', 'cropAreaSquare', 'cropAreaEllipse', 'cropAreaRect', 'cropEXIF', function($document, CropAreaCircle, CropAreaSquare, CropAreaEllipse, CropAreaRect, cropEXIF) {
   /* STATIC FUNCTIONS */
 
   // Get Element's Offset
@@ -317,6 +317,12 @@ crop.factory('cropHost', ['$document', 'cropAreaCircle', 'cropAreaSquare', 'crop
       var AreaClass=CropAreaCircle;
       if(type==='square') {
         AreaClass=CropAreaSquare;
+      }
+      else if(type==='ellipse'){
+        AreaClass=CropAreaEllipse;
+      }
+      else if(type==='rect'){
+        AreaClass=CropAreaRect;
       }
       theArea = new AreaClass(ctx, events);
       theArea.setMinSize(curMinSize);
