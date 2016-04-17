@@ -5,7 +5,7 @@
  * Copyright (c) 2016 Alex Kaul
  * License: MIT
  *
- * Generated at Sunday, April 17th, 2016, 4:09:27 PM
+ * Generated at Sunday, April 17th, 2016, 4:14:45 PM
  */
 (function() {
 'use strict';
@@ -187,7 +187,6 @@ crop.factory('cropAreaEllipse', ['cropArea', function(CropArea) {
     this._areaIsHover = false;
     this._boxResizeIsDragging = false;
     this._areaIsDragging = false;
-    this._ratio;
   };
 
   CropAreaEllipse.prototype = new CropArea();
@@ -214,9 +213,9 @@ crop.factory('cropAreaEllipse', ['cropArea', function(CropArea) {
            coord[1] > resizeIconCenterCoords[1] - hSize && coord[1] < resizeIconCenterCoords[1] + hSize);
   };
 
-  CropAreaEllipse.prototype._drawArea=function(ctx,centerCoords,size){
+  CropAreaEllipse.prototype._drawArea=function(ctx, centerCoords, size, ratio){
     
-    var width = this._ratio * size;
+    var width = ratio * size;
     var height = size;
     var centerX = centerCoords[0], centerY = centerCoords[1];
     ctx.moveTo(centerX, centerY - height/2);
@@ -402,7 +401,7 @@ crop.factory('cropAreaRect', ['cropArea', function(CropArea) {
 
   CropAreaRect.prototype._drawArea=function(ctx,centerCoords,size, ratio){
     var hSize=size/2;
-    ctx.rect(centerCoords[0]-hSize*ratio,centerCoords[1]-hSize,size*this._ratio,size);
+    ctx.rect(centerCoords[0]-hSize*ratio, centerCoords[1]-hSize, size*ratio, size);
   };
 
   CropAreaRect.prototype.draw=function() {
@@ -820,7 +819,10 @@ crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
   };
   CropArea.prototype.setRatio = function(ratio){
     this._ratio = ratio;
-    this._cropCanvas._ratio = ratio;
+    this.draw=function() {
+      // draw crop area
+      this._cropCanvas.drawCropArea(this._image,[this._x,this._y],this._size,this._drawArea, this._ratio);
+    };
   }
   /* FUNCTIONS */
   CropArea.prototype._dontDragOutside=function() {
