@@ -5,7 +5,7 @@
  * Copyright (c) 2016 undefined
  * License: MIT
  *
- * Generated at Tuesday, April 26th, 2016, 10:37:58 PM
+ * Generated at Tuesday, April 26th, 2016, 10:59:51 PM
  */
 (function() {
 var crop = angular.module('ngImgCrop', []);
@@ -177,6 +177,386 @@ crop.factory('cropAreaCircle', ['cropArea', function(CropArea) {
     };
 
     return CropAreaCircle;
+}]);
+
+crop.factory('cropAreaEllipse', ['cropArea', function(CropArea) {
+  var CropAreaEllipse = function() {
+    CropArea.apply(this, arguments);
+
+    this._boxResizeBaseSize = 20;
+    this._boxResizeNormalRatio = 0.9;
+    this._boxResizeHoverRatio = 1.2;
+    this._iconMoveNormalRatio = 0.9;
+    this._iconMoveHoverRatio = 1.2;
+
+    this._boxResizeNormalSize = this._boxResizeBaseSize*this._boxResizeNormalRatio;
+    this._boxResizeHoverSize = this._boxResizeBaseSize*this._boxResizeHoverRatio;
+
+    this._posDragStartX=0;
+    this._posDragStartY=0;
+    this._posResizeStartX=0;
+    this._posResizeStartY=0;
+    this._posResizeStartSize=0;
+
+    this._boxResizeIsHover = false;
+    this._areaIsHover = false;
+    this._boxResizeIsDragging = false;
+    this._areaIsDragging = false;
+  };
+
+  CropAreaEllipse.prototype = new CropArea();
+
+  CropAreaEllipse.prototype._calcCirclePerimeterCoords=function(angleDegrees) {
+    var hSize=this._size/2;
+    var angleRadians=angleDegrees * (Math.PI / 180),
+        circlePerimeterX=this._x + this._ratio * hSize * Math.cos(angleRadians),
+        circlePerimeterY=this._y + hSize * Math.sin(angleRadians);
+    return [circlePerimeterX, circlePerimeterY];
+  };
+
+  CropAreaEllipse.prototype._calcResizeIconCenterCoords=function() {
+    return this._calcCirclePerimeterCoords(-45);
+  };
+
+  CropAreaEllipse.prototype._isCoordWithinArea=function(coord) {
+    return Math.abs(coord[0]-this._x) < ((this._ratio*this._size)/2) && Math.abs(coord[1]-this._y) < this._size/2 ;
+  };
+  CropAreaEllipse.prototype._isCoordWithinBoxResize=function(coord) {
+    var resizeIconCenterCoords=this._calcResizeIconCenterCoords();
+    var hSize=this._boxResizeHoverSize/2;
+    return(coord[0] > (resizeIconCenterCoords[0] - hSize* this._ratio)  && coord[0] < (resizeIconCenterCoords[0] + hSize*this._ratio) &&
+           coord[1] > resizeIconCenterCoords[1] - hSize && coord[1] < resizeIconCenterCoords[1] + hSize);
+  };
+
+  CropAreaEllipse.prototype._drawArea=function(ctx, centerCoords, size, ratio){
+    
+    var width = ratio * size;
+    var height = size;
+    var centerX = centerCoords[0], centerY = centerCoords[1];
+    ctx.moveTo(centerX, centerY - height/2);
+
+    ctx.bezierCurveTo(
+    centerX + width/2, centerY - height/2,
+    centerX + width/2, centerY + height/2,
+    centerX, centerY + height/2);
+
+    ctx.bezierCurveTo(
+    centerX - width/2, centerY + height/2,
+    centerX - width/2, centerY - height/2,
+    centerX, centerY - height/2);
+    ctx.closePath();
+    
+    //ctx.ellipse(centerCoords[0], centerCoords[1], ratio*size, size, 0, 0, 2*Math.PI, false);
+    //ctx.arc(centerCoords[0],centerCoords[1],size/2,0,2*Math.PI);
+  };
+
+  CropAreaEllipse.prototype.draw=function() {
+    CropArea.prototype.draw.apply(this, arguments);
+
+    // draw move icon
+    this._cropCanvas.drawIconMove([this._x,this._y], this._areaIsHover?this._iconMoveHoverRatio:this._iconMoveNormalRatio);
+
+    // draw resize cubes
+    this._cropCanvas.drawIconResizeBoxNESW(this._calcResizeIconCenterCoords(), this._boxResizeBaseSize, this._boxResizeIsHover?this._boxResizeHoverRatio:this._boxResizeNormalRatio, this._ratio);
+  };
+
+  CropAreaEllipse.prototype.processMouseMove=function(mouseCurX, mouseCurY) {
+    var cursor='default';
+    var res=false;
+
+    this._boxResizeIsHover = false;
+    this._areaIsHover = false;
+
+    if (this._areaIsDragging) {
+      this._x = mouseCurX - this._posDragStartX;
+      this._y = mouseCurY - this._posDragStartY;
+      this._areaIsHover = true;
+      cursor='move';
+      res=true;
+      this._events.trigger('area-move');
+    } else if (this._boxResizeIsDragging) {
+        cursor = 'nesw-resize';
+        var iFR, iFX, iFY;
+        iFX = mouseCurX - this._posResizeStartX;
+        iFY = this._posResizeStartY - mouseCurY;
+        if(iFX>iFY) {
+          iFR = this._posResizeStartSize + iFY*2;
+        } else {
+          iFR = this._posResizeStartSize + iFX*2;
+        }
+
+        this._size = Math.max(this._minSize, iFR);
+        this._boxResizeIsHover = true;
+        res=true;
+        this._events.trigger('area-resize');
+    } else if (this._isCoordWithinBoxResize([mouseCurX,mouseCurY])) {
+        cursor = 'nesw-resize';
+        this._areaIsHover = false;
+        this._boxResizeIsHover = true;
+        res=true;
+    } else if(this._isCoordWithinArea([mouseCurX,mouseCurY])) {
+        cursor = 'move';
+        this._areaIsHover = true;
+        res=true;
+    }
+
+    this._dontDragOutside();
+    angular.element(this._ctx.canvas).css({'cursor': cursor});
+
+    return res;
+  };
+
+  CropAreaEllipse.prototype.processMouseDown=function(mouseDownX, mouseDownY) {
+    if (this._isCoordWithinBoxResize([mouseDownX,mouseDownY])) {
+      this._areaIsDragging = false;
+      this._areaIsHover = false;
+      this._boxResizeIsDragging = true;
+      this._boxResizeIsHover = true;
+      this._posResizeStartX=mouseDownX;
+      this._posResizeStartY=mouseDownY;
+      this._posResizeStartSize = this._size;
+      this._events.trigger('area-resize-start');
+    } else if (this._isCoordWithinArea([mouseDownX,mouseDownY])) {
+      this._areaIsDragging = true;
+      this._areaIsHover = true;
+      this._boxResizeIsDragging = false;
+      this._boxResizeIsHover = false;
+      this._posDragStartX = mouseDownX - this._x;
+      this._posDragStartY = mouseDownY - this._y;
+      this._events.trigger('area-move-start');
+    }
+  };
+
+  CropAreaEllipse.prototype.processMouseUp=function(/*mouseUpX, mouseUpY*/) {
+    if(this._areaIsDragging) {
+      this._areaIsDragging = false;
+      this._events.trigger('area-move-end');
+    }
+    if(this._boxResizeIsDragging) {
+      this._boxResizeIsDragging = false;
+      this._events.trigger('area-resize-end');
+    }
+    this._areaIsHover = false;
+    this._boxResizeIsHover = false;
+
+    this._posDragStartX = 0;
+    this._posDragStartY = 0;
+  };
+
+  return CropAreaEllipse;
+}]);
+
+crop.factory('cropAreaRect', ['cropArea', function(CropArea) {
+  var CropAreaRect = function() {
+    CropArea.apply(this, arguments);
+
+    this._resizeCtrlBaseRadius = 10;
+    this._resizeCtrlNormalRatio = 0.75;
+    this._resizeCtrlHoverRatio = 1;
+    this._iconMoveNormalRatio = 0.9;
+    this._iconMoveHoverRatio = 1.2;
+
+    this._resizeCtrlNormalRadius = this._resizeCtrlBaseRadius*this._resizeCtrlNormalRatio;
+    this._resizeCtrlHoverRadius = this._resizeCtrlBaseRadius*this._resizeCtrlHoverRatio;
+
+    this._posDragStartX=0;
+    this._posDragStartY=0;
+    this._posResizeStartX=0;
+    this._posResizeStartY=0;
+    this._posResizeStartSize=0;
+
+    this._resizeCtrlIsHover = -1;
+    this._areaIsHover = false;
+    this._resizeCtrlIsDragging = -1;
+    this._areaIsDragging = false;
+  };
+
+  CropAreaRect.prototype = new CropArea();
+
+  CropAreaRect.prototype._calcSquareCorners=function() {
+    var hSize=this._size/2;
+    return [
+      [this._x-hSize*this._ratio, this._y-hSize],
+      [this._x+hSize*this._ratio, this._y-hSize],
+      [this._x-hSize*this._ratio, this._y+hSize],
+      [this._x+hSize*this._ratio, this._y+hSize]
+    ];
+  };
+
+  CropAreaRect.prototype._calcSquareDimensions=function() {
+    var hSize=this._size/2;
+    return {
+      left: this._x-hSize*this._ratio,
+      top: this._y-hSize,
+      right: this._x+hSize*this._ratio,
+      bottom: this._y+hSize
+    };
+  };
+
+  CropAreaRect.prototype._isCoordWithinArea=function(coord) {
+    var squareDimensions=this._calcSquareDimensions();
+    return (coord[0]>=squareDimensions.left&&coord[0]<=squareDimensions.right&&coord[1]>=squareDimensions.top&&coord[1]<=squareDimensions.bottom);
+  };
+
+  CropAreaRect.prototype._isCoordWithinResizeCtrl=function(coord) {
+    var resizeIconsCenterCoords=this._calcSquareCorners();
+    var res=-1;
+    for(var i=0,len=resizeIconsCenterCoords.length;i<len;i++) {
+      var resizeIconCenterCoords=resizeIconsCenterCoords[i];
+      if(coord[0] > resizeIconCenterCoords[0] - this._resizeCtrlHoverRadius && coord[0] < resizeIconCenterCoords[0] + this._resizeCtrlHoverRadius &&
+         coord[1] > resizeIconCenterCoords[1] - this._resizeCtrlHoverRadius && coord[1] < resizeIconCenterCoords[1] + this._resizeCtrlHoverRadius) {
+        res=i;
+        break;
+      }
+    }
+    return res;
+  };
+
+  CropAreaRect.prototype._drawArea=function(ctx,centerCoords,size, ratio){
+    var hSize=size/2;
+    ctx.rect(centerCoords[0]-hSize*ratio, centerCoords[1]-hSize, size*ratio, size);
+  };
+
+  CropAreaRect.prototype.draw=function() {
+    CropArea.prototype.draw.apply(this, arguments);
+
+    // draw move icon
+    this._cropCanvas.drawIconMove([this._x,this._y], this._areaIsHover?this._iconMoveHoverRatio:this._iconMoveNormalRatio);
+
+    // draw resize cubes
+    var resizeIconsCenterCoords=this._calcSquareCorners();
+    for(var i=0,len=resizeIconsCenterCoords.length;i<len;i++) {
+      var resizeIconCenterCoords=resizeIconsCenterCoords[i];
+      this._cropCanvas.drawIconResizeCircle(resizeIconCenterCoords, this._resizeCtrlBaseRadius, this._resizeCtrlIsHover===i?this._resizeCtrlHoverRatio:this._resizeCtrlNormalRatio, this._ratio);
+    }
+  };
+
+  CropAreaRect.prototype.processMouseMove=function(mouseCurX, mouseCurY) {
+    var cursor='default';
+    var res=false;
+
+    this._resizeCtrlIsHover = -1;
+    this._areaIsHover = false;
+
+    if (this._areaIsDragging) {
+      this._x = mouseCurX - this._posDragStartX;
+      this._y = mouseCurY - this._posDragStartY;
+      this._areaIsHover = true;
+      cursor='move';
+      res=true;
+      this._events.trigger('area-move');
+    } else if (this._resizeCtrlIsDragging>-1) {
+      var xMulti, yMulti;
+      switch(this._resizeCtrlIsDragging) {
+        case 0: // Top Left
+          xMulti=-1;
+          yMulti=-1;
+          cursor = 'nwse-resize';
+          break;
+        case 1: // Top Right
+          xMulti=1;
+          yMulti=-1;
+          cursor = 'nesw-resize';
+          break;
+        case 2: // Bottom Left
+          xMulti=-1;
+          yMulti=1;
+          cursor = 'nesw-resize';
+          break;
+        case 3: // Bottom Right
+          xMulti=1;
+          yMulti=1;
+          cursor = 'nwse-resize';
+          break;
+      }
+      var iFX = (mouseCurX - this._posResizeStartX)*xMulti;
+      var iFY = (mouseCurY - this._posResizeStartY)*yMulti;
+      var iFR;
+      if(iFX>iFY) {
+        iFR = this._posResizeStartSize + iFY;
+      } else {
+        iFR = this._posResizeStartSize + iFX;
+      }
+      var wasSize=this._size;
+      this._size = Math.max(this._minSize, iFR);
+      var posModifier=(this._size-wasSize)/2;
+      this._x+=posModifier*xMulti;
+      this._y+=posModifier*yMulti;
+      this._resizeCtrlIsHover = this._resizeCtrlIsDragging;
+      res=true;
+      this._events.trigger('area-resize');
+    } else {
+      var hoveredResizeBox=this._isCoordWithinResizeCtrl([mouseCurX,mouseCurY]);
+      if (hoveredResizeBox>-1) {
+        switch(hoveredResizeBox) {
+          case 0:
+            cursor = 'nwse-resize';
+            break;
+          case 1:
+            cursor = 'nesw-resize';
+            break;
+          case 2:
+            cursor = 'nesw-resize';
+            break;
+          case 3:
+            cursor = 'nwse-resize';
+            break;
+        }
+        this._areaIsHover = false;
+        this._resizeCtrlIsHover = hoveredResizeBox;
+        res=true;
+      } else if(this._isCoordWithinArea([mouseCurX,mouseCurY])) {
+        cursor = 'move';
+        this._areaIsHover = true;
+        res=true;
+      }
+    }
+
+    this._dontDragOutside();
+    angular.element(this._ctx.canvas).css({'cursor': cursor});
+
+    return res;
+  };
+
+  CropAreaRect.prototype.processMouseDown=function(mouseDownX, mouseDownY) {
+    var isWithinResizeCtrl=this._isCoordWithinResizeCtrl([mouseDownX,mouseDownY]);
+    if (isWithinResizeCtrl>-1) {
+      this._areaIsDragging = false;
+      this._areaIsHover = false;
+      this._resizeCtrlIsDragging = isWithinResizeCtrl;
+      this._resizeCtrlIsHover = isWithinResizeCtrl;
+      this._posResizeStartX=mouseDownX;
+      this._posResizeStartY=mouseDownY;
+      this._posResizeStartSize = this._size;
+      this._events.trigger('area-resize-start');
+    } else if (this._isCoordWithinArea([mouseDownX,mouseDownY])) {
+      this._areaIsDragging = true;
+      this._areaIsHover = true;
+      this._resizeCtrlIsDragging = -1;
+      this._resizeCtrlIsHover = -1;
+      this._posDragStartX = mouseDownX - this._x;
+      this._posDragStartY = mouseDownY - this._y;
+      this._events.trigger('area-move-start');
+    }
+  };
+
+  CropAreaRect.prototype.processMouseUp=function(/*mouseUpX, mouseUpY*/) {
+    if(this._areaIsDragging) {
+      this._areaIsDragging = false;
+      this._events.trigger('area-move-end');
+    }
+    if(this._resizeCtrlIsDragging>-1) {
+      this._resizeCtrlIsDragging = -1;
+      this._events.trigger('area-resize-end');
+    }
+    this._areaIsHover = false;
+    this._resizeCtrlIsHover = -1;
+
+    this._posDragStartX = 0;
+    this._posDragStartY = 0;
+  };
+
+  return CropAreaRect;
 }]);
 
 crop.factory('cropAreaRectangle', ['cropArea', function (CropArea) {
