@@ -22,6 +22,12 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($time
             areaMinSize: '=?',
             areaInitSize: '=?',
             areaInitCoords: '=?',
+            areaInitIsRelativeToImage: '=?', /* Boolean: If true the areaInitCoords and areaInitSize is scaled according to canvas size. */
+                                             /* No matter how big/small the canvas is, the resultImage remains the same */
+                                             /* Example: areaInitCoords are {x: 100, y: 100}, areaInitSize {w: 100, h: 100}   */
+                                             /* Image is 1000x1000
+                                             /* if canvas is 500x500 Crop coordinates will be x: 50, y: 50, w: 50, h: 50 */
+                                             /* if canvas is 100x100 crop coordinates will be x: 10, y: 10, w: 10, h: 10 */
             areaMinRelativeSize: '=?',
             resultImageSize: '=?',
             resultImageFormat: '=?',
@@ -145,7 +151,11 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($time
                     scope.onLoadBegin({});
                 }))
                 .on('load-done', fnSafeApply(function (scope) {
-                    angular.element(element.children()[element.children().length - 1]).remove();
+                    var children = element.children();
+                    angular.forEach(children, function (child, index) {
+                        if (angular.element(child).hasClass("loading"))
+                            angular.element(child).remove();
+                    });
                     scope.onLoadDone({});
                 }))
                 .on('load-error', fnSafeApply(function (scope) {
@@ -196,6 +206,7 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($time
             });
             scope.$watch('areaInitCoords', function () {
                 cropHost.setAreaInitCoords(scope.areaInitCoords);
+                cropHost.areaInitIsRelativeToImage = scope.areaInitIsRelativeToImage;
                 updateResultImage(scope);
             });
             scope.$watch('maxCanvasDimensions', function () {

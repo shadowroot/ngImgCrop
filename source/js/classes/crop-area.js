@@ -113,6 +113,7 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
             size.y=this._size.y;
         }
         this._size=size;
+        CropDataService.store(this._size);
     };
 
     CropArea.prototype.setSizeByCorners = function(northWestCorner, southEastCorner) {
@@ -144,8 +145,8 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
         if(CropDataService.hasStored()){
             var data = CropDataService.load();
             return{
-                x : data.x,
-                y: data.y
+                x : data.x + (s.w / 2),
+                y: data.y + (s.h / 2)
             }
         }
         return {
@@ -222,6 +223,7 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
         else newSize.y=size.y;
         return newSize;
     };
+
     CropArea.prototype._preventBoundaryCollision = function(size) {
         var canvasH = this._ctx.canvas.height,
             canvasW = this._ctx.canvas.width;
