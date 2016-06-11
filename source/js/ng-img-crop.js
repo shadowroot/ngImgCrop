@@ -13,6 +13,7 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($time
             cropject: '=?',
 
             changeOnFly: '=?',
+            areaLock: '=?',
             liveView: '=?',
             initMaxArea: '=?',
             areaCoords: '=?',
@@ -102,10 +103,12 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($time
             var updateCropject = function (scope) {
                 var areaCoords = cropHost.getAreaCoords();
 
+                
                 var dimRatio = {
                   x: cropHost.getArea().getImage().width / cropHost.getArea().getCanvasSize().w,
                   y: cropHost.getArea().getImage().height / cropHost.getArea().getCanvasSize().h
                 };
+                
 
                 scope.cropject = {
                     areaCoords: areaCoords,
@@ -162,14 +165,15 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($time
 
 
             // Sync CropHost with Directive's options
-            scope.$watch('image', function (newVal) {
-                if (newVal) {
+            scope.$watch('image', function (newVal, oldVal) {
+                if (newVal != oldVal) {
                     displayLoading();
+                    
+                    $timeout(function () {
+                        cropHost.setInitMax(scope.initMaxArea);
+                        cropHost.setNewImageSource(scope.image);
+                    }, 100);
                 }
-                $timeout(function () {
-                    cropHost.setInitMax(scope.initMaxArea);
-                    cropHost.setNewImageSource(scope.image);
-                }, 100);
             });
             scope.$watch('areaType', function () {
                 cropHost.setAreaType(scope.areaType);
