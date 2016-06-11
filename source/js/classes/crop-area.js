@@ -1,6 +1,6 @@
 'use strict';
 
-crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
+crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, CropDataService) {
     var CropArea = function(ctx, events) {
         this._ctx = ctx;
         this._events = events;
@@ -13,6 +13,7 @@ crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
         };
 
         this._initSize = undefined;
+        this._initCoords = undefined;
         this._allowCropResizeOnCorners = false;
 
         this._forceAspectRatio = false;
@@ -49,6 +50,10 @@ crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
         this._aspect=aspect;
     };
 
+    CropArea.prototype.getAspect = function() {
+        return this._aspect;
+    };
+
     CropArea.prototype.getCanvasSize = function() {
         return {
           w: this._ctx.canvas.width,
@@ -63,12 +68,14 @@ crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
     CropArea.prototype.setSize = function(size) {
         size = this._processSize(size);
         this._size = this._preventBoundaryCollision(size);
+        CropDataService.store(this._size);
     };
 
     CropArea.prototype.setSizeOnMove = function(size) {
         size = this._processSize(size);
         if(this._allowCropResizeOnCorners) this._size = this._preventBoundaryCollision(size);
         else this._size = this._allowMouseOutsideCanvas(size);
+        CropDataService.store(this._size);
     };
 
     CropArea.prototype.CircleOnMove = function(northWestCorner, southEastCorner) {
@@ -134,6 +141,13 @@ crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
 
     CropArea.prototype.getCenterPoint = function() {
         var s = this.getSize();
+        if(CropDataService.hasStored()){
+            var data = CropDataService.load();
+            return{
+                x : data.x,
+                y: data.y
+            }
+        }
         return {
             x: s.x + (s.w / 2),
             y: s.y + (s.h / 2)
@@ -167,6 +181,23 @@ crop.factory('cropArea', ['cropCanvas', function(CropCanvas) {
 
     CropArea.prototype.getInitSize = function() {
         return this._initSize;
+    };
+
+    CropArea.prototype.setInitCoords = function(coords) {
+        //add h/w-data to coords-object
+        coords.h = this.getSize().h;
+        coords.w = this.getSize().w;
+        if(CropDataService.hasStored()){
+            var data = CropDataService.load();
+            coords.x = data.x;
+            coords.y = data.y;
+        }
+        this._initCoords = this._processSize(coords);
+        this.setSize(this._initCoords);
+    };
+
+    CropArea.prototype.getInitCoords = function() {
+        return this._initCoords;
     };
 
     // return a type string
