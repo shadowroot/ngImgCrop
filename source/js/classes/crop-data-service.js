@@ -11,7 +11,7 @@ crop.service('cropDataService', function () {
     this.store = function (_centerPoint) {
         this._center = _centerPoint;
         this._settuped = true;
-        console.log("Crop stored", this._center);
+        //console.log("Crop stored", this._center);
     };
 
     this.load = function () {

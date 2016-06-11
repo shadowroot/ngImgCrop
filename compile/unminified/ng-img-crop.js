@@ -5,7 +5,7 @@
  * Copyright (c) 2016 undefined
  * License: MIT
  *
- * Generated at Saturday, June 11th, 2016, 5:06:50 PM
+ * Generated at Saturday, June 11th, 2016, 5:28:20 PM
  */
 (function() {
 var crop = angular.module('ngImgCrop', []);
@@ -1801,7 +1801,7 @@ crop.service('cropDataService', function () {
     this.store = function (_centerPoint) {
         this._center = _centerPoint;
         this._settuped = true;
-        console.log("Crop stored", this._center);
+        //console.log("Crop stored", this._center);
     };
 
     this.load = function () {
