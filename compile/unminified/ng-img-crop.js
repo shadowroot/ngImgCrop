@@ -5,7 +5,7 @@
  * Copyright (c) 2016 undefined
  * License: MIT
  *
- * Generated at Saturday, June 11th, 2016, 4:27:12 PM
+ * Generated at Saturday, June 11th, 2016, 5:06:50 PM
  */
 (function() {
 var crop = angular.module('ngImgCrop', []);
@@ -1232,6 +1232,7 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     };
     CropArea.prototype.setImage = function(image) {
         this._image = image;
+        CropDataService.clear();
     };
 
     CropArea.prototype.setForceAspectRatio = function(force) {
@@ -1240,6 +1241,7 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
 
     CropArea.prototype.setAspect = function(aspect) {
         this._aspect=aspect;
+        CropDataService.clear();
     };
 
     CropArea.prototype.getAspect = function() {
@@ -1254,6 +1256,9 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     };
 
     CropArea.prototype.getSize = function() {
+        if(CropDataService.hasStored()){
+            this._size = CropDataService.load();
+        }
         return this._size;
     };
 
@@ -1337,9 +1342,9 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
         if(CropDataService.hasStored()){
             var data = CropDataService.load();
             return{
-                x : data.x + (s.w / 2),
+                x: data.x + (s.w / 2),
                 y: data.y + (s.h / 2)
-            }
+            };
         }
         return {
             x: s.x + (s.w / 2),
@@ -1390,6 +1395,9 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     };
 
     CropArea.prototype.getInitCoords = function() {
+        if(CropDataService.hasStored()){
+            return CropDataService.load();
+        }
         return this._initCoords;
     };
 
@@ -1786,19 +1794,21 @@ crop.factory('cropCanvas', [function() {
  * Storing center points.
  */
 
-crop.service('cropDataService', [function () {
+crop.service('cropDataService', function () {
     this._settuped = false;
     this._center = null;
 
     this.store = function (_centerPoint) {
         this._center = _centerPoint;
         this._settuped = true;
+        console.log("Crop stored", this._center);
     };
 
     this.load = function () {
         if(!this._settuped){
             return null;
         }
+        //console.log("Crop loaded", this._center);
         return this._center;
     };
 
@@ -1806,11 +1816,11 @@ crop.service('cropDataService', [function () {
         return this._settuped;
     };
 
-    this.cleanup = function () {
+    this.clear = function () {
         this._settuped = false;
     };
 
-}]);
+});
 
 /**
  * EXIF service is based on the exif-js library (https://github.com/jseidelin/exif-js)
