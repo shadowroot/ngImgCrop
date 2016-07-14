@@ -1,6 +1,6 @@
 'use strict';
 
-crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($timeout, CropHost, CropPubSub) {
+crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', 'cropDataService', function ($timeout, CropHost, CropPubSub, CropDataService) {
     return {
         restrict: 'E',
         scope: {
@@ -206,10 +206,10 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($time
                 cropHost.setAreaInitSize(scope.areaInitSize);
                 updateResultImage(scope);
             });
-            scope.$watch('areaInitCoords', function () {
-                cropHost.setAreaInitCoords(scope.areaInitCoords);
-                cropHost.areaInitIsRelativeToImage = scope.areaInitIsRelativeToImage;
-                updateResultImage(scope);
+            scope.$watch('areaInitCoords', function (newVal, oldVal) {
+                    cropHost.setAreaInitCoords(scope.areaInitCoords);
+                    cropHost.areaInitIsRelativeToImage = scope.areaInitIsRelativeToImage;
+                    updateResultImage(scope);
             });
             scope.$watch('maxCanvasDimensions', function () {
                 cropHost.setMaxCanvasDimensions(scope.maxCanvasDimensions);

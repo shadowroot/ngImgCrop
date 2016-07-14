@@ -1,3 +1,6 @@
+
+'use strict';
+
 crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare', 'cropAreaRectangle', 'cropEXIF' , 'cropDataService', function(
     $document, $q, CropAreaCircle, CropAreaSquare, CropAreaRectangle, cropEXIF, CropDataService) {
     /* STATIC FUNCTIONS */
@@ -135,7 +138,8 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
                         w: cw,
                         h: ch
                     });
-                }else if(undefined !== theArea.getInitSize() ) {
+                }
+                else if(undefined !== theArea.getInitSize() ) {
                     theArea.setSize({
                         w: Math.min(theArea.getInitSize().w, cw / 2),
                         h: Math.min(theArea.getInitSize().h, ch / 2)
@@ -149,32 +153,30 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
                 if(CropDataService.hasStored()){
                     theArea.setSize(CropDataService.load());
                 }
-                else{
-                    if(theArea.getInitCoords()) {
-                            if (self.areaInitIsRelativeToImage) {
-                                var ratio = image.width / canvasDims[0];
-                                theArea.setSize({
-                                    w: theArea.getInitSize().w / ratio,
-                                    h: theArea.getInitSize().h / ratio,
-                                    x: theArea.getInitCoords().x / ratio,
-                                    y: theArea.getInitCoords().y / ratio
-                                });
-                            } else {
-                                theArea.setSize({
-                                    w: theArea.getSize().w,
-                                    h: theArea.getSize().h,
-                                    x: theArea.getInitCoords().x,
-                                    y: theArea.getInitCoords().y
-                                });
-                            }}
-                            else {
-                                theArea.setCenterPoint({
-                                    x: ctx.canvas.width / 2,
-                                    y: ctx.canvas.height / 2
-                                });
-                            }
-                } 
-
+                else if(theArea.getInitCoords()) {
+                    if (self.areaInitIsRelativeToImage) {
+                        var ratio = image.width / canvasDims[0];
+                        theArea.setSize({
+                            w: theArea.getInitSize().w / ratio,
+                            h: theArea.getInitSize().h / ratio,
+                            x: theArea.getInitCoords().x / ratio,
+                            y: theArea.getInitCoords().y / ratio
+                        });
+                    } else {
+                        theArea.setSize({
+                            w: theArea.getSize().w,
+                            h: theArea.getSize().h,
+                            x: theArea.getInitCoords().x,
+                            y: theArea.getInitCoords().y
+                        });
+                    }
+                }
+                else {
+                    theArea.setCenterPoint({
+                        x: ctx.canvas.width / 2,
+                        y: ctx.canvas.height / 2
+                    });
+                }
             } else {
                 elCanvas.prop('width', 0).prop('height', 0).css({
                     'margin-top': 0
@@ -610,14 +612,7 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
         };
 
         this.setAreaInitCoords = function(coords) {
-             if(CropDataService.hasStored()){
-                var loaded = CropDataService.load();
-                coords = {
-                    x: loaded.x,
-                    y: loaded.y
-                };
-             }
-            else if (angular.isUndefined(coords)) {
+            if (angular.isUndefined(coords)) {
                 return;
             }
             else{
@@ -868,4 +863,3 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
     };
 }]);
 
-'use strict';

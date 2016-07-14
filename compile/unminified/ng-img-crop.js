@@ -5,7 +5,7 @@
  * Copyright (c) 2016 undefined
  * License: MIT
  *
- * Generated at Thursday, July 14th, 2016, 9:24:38 PM
+ * Generated at Thursday, July 14th, 2016, 10:34:50 PM
  */
 (function() {
 var crop = angular.module('ngImgCrop', []);
@@ -1158,11 +1158,12 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
 
     CropArea.prototype.setInitCoords = function(coords) {
         //add h/w-data to coords-object
+        if(CropDataService.hasStored()){
+            this._size = CropDataService.load();
+            return;
+        }
         coords.h = this.getSize().h;
         coords.w = this.getSize().w;
-        if(CropDataService.hasStored()){
-            this._initSize = CropDataService.load();
-        }
         this._initCoords = this._processSize(coords);
         this.setSize(this._initCoords);
     };
@@ -2507,7 +2508,8 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
                         w: cw,
                         h: ch
                     });
-                }else if(undefined !== theArea.getInitSize() ) {
+                }
+                else if(undefined !== theArea.getInitSize() ) {
                     theArea.setSize({
                         w: Math.min(theArea.getInitSize().w, cw / 2),
                         h: Math.min(theArea.getInitSize().h, ch / 2)
@@ -2521,32 +2523,30 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
                 if(CropDataService.hasStored()){
                     theArea.setSize(CropDataService.load());
                 }
-                else{
-                    if(theArea.getInitCoords()) {
-                            if (self.areaInitIsRelativeToImage) {
-                                var ratio = image.width / canvasDims[0];
-                                theArea.setSize({
-                                    w: theArea.getInitSize().w / ratio,
-                                    h: theArea.getInitSize().h / ratio,
-                                    x: theArea.getInitCoords().x / ratio,
-                                    y: theArea.getInitCoords().y / ratio
-                                });
-                            } else {
-                                theArea.setSize({
-                                    w: theArea.getSize().w,
-                                    h: theArea.getSize().h,
-                                    x: theArea.getInitCoords().x,
-                                    y: theArea.getInitCoords().y
-                                });
-                            }}
-                            else {
-                                theArea.setCenterPoint({
-                                    x: ctx.canvas.width / 2,
-                                    y: ctx.canvas.height / 2
-                                });
-                            }
-                } 
-
+                else if(theArea.getInitCoords()) {
+                    if (self.areaInitIsRelativeToImage) {
+                        var ratio = image.width / canvasDims[0];
+                        theArea.setSize({
+                            w: theArea.getInitSize().w / ratio,
+                            h: theArea.getInitSize().h / ratio,
+                            x: theArea.getInitCoords().x / ratio,
+                            y: theArea.getInitCoords().y / ratio
+                        });
+                    } else {
+                        theArea.setSize({
+                            w: theArea.getSize().w,
+                            h: theArea.getSize().h,
+                            x: theArea.getInitCoords().x,
+                            y: theArea.getInitCoords().y
+                        });
+                    }
+                }
+                else {
+                    theArea.setCenterPoint({
+                        x: ctx.canvas.width / 2,
+                        y: ctx.canvas.height / 2
+                    });
+                }
             } else {
                 elCanvas.prop('width', 0).prop('height', 0).css({
                     'margin-top': 0
@@ -2982,14 +2982,7 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
         };
 
         this.setAreaInitCoords = function(coords) {
-             if(CropDataService.hasStored()){
-                var loaded = CropDataService.load();
-                coords = {
-                    x: loaded.x,
-                    y: loaded.y
-                };
-             }
-            else if (angular.isUndefined(coords)) {
+            if (angular.isUndefined(coords)) {
                 return;
             }
             else{
@@ -3264,7 +3257,7 @@ crop.factory('cropPubSub', [function() {
     };
 }]);
 
-crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($timeout, CropHost, CropPubSub) {
+crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', 'cropDataService', function ($timeout, CropHost, CropPubSub, CropDataService) {
     return {
         restrict: 'E',
         scope: {
@@ -3469,10 +3462,10 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($time
                 cropHost.setAreaInitSize(scope.areaInitSize);
                 updateResultImage(scope);
             });
-            scope.$watch('areaInitCoords', function () {
-                cropHost.setAreaInitCoords(scope.areaInitCoords);
-                cropHost.areaInitIsRelativeToImage = scope.areaInitIsRelativeToImage;
-                updateResultImage(scope);
+            scope.$watch('areaInitCoords', function (newVal, oldVal) {
+                    cropHost.setAreaInitCoords(scope.areaInitCoords);
+                    cropHost.areaInitIsRelativeToImage = scope.areaInitIsRelativeToImage;
+                    updateResultImage(scope);
             });
             scope.$watch('maxCanvasDimensions', function () {
                 cropHost.setMaxCanvasDimensions(scope.maxCanvasDimensions);

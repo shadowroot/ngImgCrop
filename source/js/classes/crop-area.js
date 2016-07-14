@@ -179,11 +179,12 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
 
     CropArea.prototype.setInitCoords = function(coords) {
         //add h/w-data to coords-object
+        if(CropDataService.hasStored()){
+            this._size = CropDataService.load();
+            return;
+        }
         coords.h = this.getSize().h;
         coords.w = this.getSize().w;
-        if(CropDataService.hasStored()){
-            this._initSize = CropDataService.load();
-        }
         this._initCoords = this._processSize(coords);
         this.setSize(this._initCoords);
     };
