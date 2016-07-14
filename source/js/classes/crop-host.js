@@ -1,4 +1,5 @@
-crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare', 'cropAreaRectangle', 'cropEXIF', function($document, $q, CropAreaCircle, CropAreaSquare, CropAreaRectangle, cropEXIF) {
+crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare', 'cropAreaRectangle', 'cropEXIF' , 'cropDataService', function(
+    $document, $q, CropAreaCircle, CropAreaSquare, CropAreaRectangle, cropEXIF, CropDataService) {
     /* STATIC FUNCTIONS */
 
     // Get Element's Offset
@@ -145,30 +146,34 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
                         h: Math.min(200, ch / 2)
                     });
                 }
-
-                if(theArea.getInitCoords()) {
-                    if (self.areaInitIsRelativeToImage) {
-                        var ratio = image.width / canvasDims[0];
-                        theArea.setSize({
-                            w: theArea.getInitSize().w / ratio,
-                            h: theArea.getInitSize().h / ratio,
-                            x: theArea.getInitCoords().x / ratio,
-                            y: theArea.getInitCoords().y / ratio
-                        });
-                    } else {
-                        theArea.setSize({
-                            w: theArea.getSize().w,
-                            h: theArea.getSize().h,
-                            x: theArea.getInitCoords().x,
-                            y: theArea.getInitCoords().y
-                        });
-                    }
-                } else {
-                    theArea.setCenterPoint({
-                        x: ctx.canvas.width / 2,
-                        y: ctx.canvas.height / 2
-                    });
+                if(CropDataService.hasStored()){
+                    theArea.setSize(CropDataService.load());
                 }
+                else{
+                    if(theArea.getInitCoords()) {
+                            if (self.areaInitIsRelativeToImage) {
+                                var ratio = image.width / canvasDims[0];
+                                theArea.setSize({
+                                    w: theArea.getInitSize().w / ratio,
+                                    h: theArea.getInitSize().h / ratio,
+                                    x: theArea.getInitCoords().x / ratio,
+                                    y: theArea.getInitCoords().y / ratio
+                                });
+                            } else {
+                                theArea.setSize({
+                                    w: theArea.getSize().w,
+                                    h: theArea.getSize().h,
+                                    x: theArea.getInitCoords().x,
+                                    y: theArea.getInitCoords().y
+                                });
+                            }}
+                            else {
+                                theArea.setCenterPoint({
+                                    x: ctx.canvas.width / 2,
+                                    y: ctx.canvas.height / 2
+                                });
+                            }
+                } 
 
             } else {
                 elCanvas.prop('width', 0).prop('height', 0).css({
@@ -372,7 +377,7 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
         };
 
         this.getAreaCoords = function() {
-            return theArea.getSize()
+            return theArea.getSize();
         };
 
         this.getArea = function() {
@@ -605,9 +610,17 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
         };
 
         this.setAreaInitCoords = function(coords) {
-            if (angular.isUndefined(coords)) {
+             if(CropDataService.hasStored()){
+                var loaded = CropDataService.load();
+                coords = {
+                    x: loaded.x,
+                    y: loaded.y
+                };
+             }
+            else if (angular.isUndefined(coords)) {
                 return;
-            }else{
+            }
+            else{
                 coords = {
                     x: parseInt(coords.x, 10),
                     y: parseInt(coords.y, 10)

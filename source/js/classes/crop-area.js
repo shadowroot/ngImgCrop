@@ -14,6 +14,12 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
 
         this._initSize = undefined;
         this._initCoords = undefined;
+        this._size = {
+            x: 0,
+            y: 0,
+            w: 150,
+            h: 150
+        };
         this._allowCropResizeOnCorners = false;
 
         this._forceAspectRatio = false;
@@ -22,12 +28,6 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
         this._cropCanvas = new CropCanvas(ctx);
 
         this._image = new Image();
-        this._size = {
-            x: 0,
-            y: 0,
-            w: 150,
-            h: 150
-        };
     };
 
     /* GETTERS/SETTERS */
@@ -40,7 +40,6 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     };
     CropArea.prototype.setImage = function(image) {
         this._image = image;
-        CropDataService.clear();
     };
 
     CropArea.prototype.setForceAspectRatio = function(force) {
@@ -49,7 +48,6 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
 
     CropArea.prototype.setAspect = function(aspect) {
         this._aspect=aspect;
-        CropDataService.clear();
     };
 
     CropArea.prototype.getAspect = function() {
@@ -64,9 +62,6 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     };
 
     CropArea.prototype.getSize = function() {
-        if(CropDataService.hasStored()){
-            this._size = CropDataService.load();
-        }
         return this._size;
     };
 
@@ -118,7 +113,7 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
             size.y=this._size.y;
         }
         this._size=size;
-        CropDataService.store(this._size);
+        CropDataService.store(_.cloneDeep(this._size));
     };
 
     CropArea.prototype.setSizeByCorners = function(northWestCorner, southEastCorner) {
@@ -147,13 +142,6 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
 
     CropArea.prototype.getCenterPoint = function() {
         var s = this.getSize();
-        if(CropDataService.hasStored()){
-            var data = CropDataService.load();
-            return{
-                x: data.x + (s.w / 2),
-                y: data.y + (s.h / 2)
-            };
-        }
         return {
             x: s.x + (s.w / 2),
             y: s.y + (s.h / 2)
@@ -171,7 +159,7 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     };
     
     CropArea.prototype.setCenterPointOnMove = function(point) {
-        var s = this.getSize();
+        var s = this._size;
         this.setSizeOnMove({
             x: point.x - s.w / 2,
             y: point.y - s.h / 2,
@@ -194,18 +182,13 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
         coords.h = this.getSize().h;
         coords.w = this.getSize().w;
         if(CropDataService.hasStored()){
-            var data = CropDataService.load();
-            coords.x = data.x;
-            coords.y = data.y;
+            this._initSize = CropDataService.load();
         }
         this._initCoords = this._processSize(coords);
         this.setSize(this._initCoords);
     };
 
     CropArea.prototype.getInitCoords = function() {
-        if(CropDataService.hasStored()){
-            return CropDataService.load();
-        }
         return this._initCoords;
     };
 

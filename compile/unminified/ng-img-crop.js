@@ -5,7 +5,7 @@
  * Copyright (c) 2016 undefined
  * License: MIT
  *
- * Generated at Sunday, June 12th, 2016, 2:09:32 AM
+ * Generated at Thursday, July 14th, 2016, 9:24:38 PM
  */
 (function() {
 var crop = angular.module('ngImgCrop', []);
@@ -993,6 +993,12 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
 
         this._initSize = undefined;
         this._initCoords = undefined;
+        this._size = {
+            x: 0,
+            y: 0,
+            w: 150,
+            h: 150
+        };
         this._allowCropResizeOnCorners = false;
 
         this._forceAspectRatio = false;
@@ -1001,12 +1007,6 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
         this._cropCanvas = new CropCanvas(ctx);
 
         this._image = new Image();
-        this._size = {
-            x: 0,
-            y: 0,
-            w: 150,
-            h: 150
-        };
     };
 
     /* GETTERS/SETTERS */
@@ -1019,7 +1019,6 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     };
     CropArea.prototype.setImage = function(image) {
         this._image = image;
-        CropDataService.clear();
     };
 
     CropArea.prototype.setForceAspectRatio = function(force) {
@@ -1028,7 +1027,6 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
 
     CropArea.prototype.setAspect = function(aspect) {
         this._aspect=aspect;
-        CropDataService.clear();
     };
 
     CropArea.prototype.getAspect = function() {
@@ -1043,9 +1041,6 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     };
 
     CropArea.prototype.getSize = function() {
-        if(CropDataService.hasStored()){
-            this._size = CropDataService.load();
-        }
         return this._size;
     };
 
@@ -1097,7 +1092,7 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
             size.y=this._size.y;
         }
         this._size=size;
-        CropDataService.store(this._size);
+        CropDataService.store(_.cloneDeep(this._size));
     };
 
     CropArea.prototype.setSizeByCorners = function(northWestCorner, southEastCorner) {
@@ -1126,13 +1121,6 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
 
     CropArea.prototype.getCenterPoint = function() {
         var s = this.getSize();
-        if(CropDataService.hasStored()){
-            var data = CropDataService.load();
-            return{
-                x: data.x + (s.w / 2),
-                y: data.y + (s.h / 2)
-            };
-        }
         return {
             x: s.x + (s.w / 2),
             y: s.y + (s.h / 2)
@@ -1150,7 +1138,7 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     };
     
     CropArea.prototype.setCenterPointOnMove = function(point) {
-        var s = this.getSize();
+        var s = this._size;
         this.setSizeOnMove({
             x: point.x - s.w / 2,
             y: point.y - s.h / 2,
@@ -1173,18 +1161,13 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
         coords.h = this.getSize().h;
         coords.w = this.getSize().w;
         if(CropDataService.hasStored()){
-            var data = CropDataService.load();
-            coords.x = data.x;
-            coords.y = data.y;
+            this._initSize = CropDataService.load();
         }
         this._initCoords = this._processSize(coords);
         this.setSize(this._initCoords);
     };
 
     CropArea.prototype.getInitCoords = function() {
-        if(CropDataService.hasStored()){
-            return CropDataService.load();
-        }
         return this._initCoords;
     };
 
@@ -1357,8 +1340,8 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
         var width = size.w;
         if(this._aspect) width = size.h * this._aspect;
         return {
-            x: size.x || this._size.x,
-            y: size.y || this._size.y,
+            x: size.x || this.getSize().x,
+            y: size.y || this.getSize().y,
             w: width || this._minSize.w,
             h: size.h || this._minSize.h
         };
@@ -2387,7 +2370,8 @@ crop.service('cropEXIF', [function() {
     }
 }]);
 
-crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare', 'cropAreaRectangle', 'cropEXIF', function($document, $q, CropAreaCircle, CropAreaSquare, CropAreaRectangle, cropEXIF) {
+crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare', 'cropAreaRectangle', 'cropEXIF' , 'cropDataService', function(
+    $document, $q, CropAreaCircle, CropAreaSquare, CropAreaRectangle, cropEXIF, CropDataService) {
     /* STATIC FUNCTIONS */
 
     // Get Element's Offset
@@ -2534,30 +2518,34 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
                         h: Math.min(200, ch / 2)
                     });
                 }
-
-                if(theArea.getInitCoords()) {
-                    if (self.areaInitIsRelativeToImage) {
-                        var ratio = image.width / canvasDims[0];
-                        theArea.setSize({
-                            w: theArea.getInitSize().w / ratio,
-                            h: theArea.getInitSize().h / ratio,
-                            x: theArea.getInitCoords().x / ratio,
-                            y: theArea.getInitCoords().y / ratio
-                        });
-                    } else {
-                        theArea.setSize({
-                            w: theArea.getSize().w,
-                            h: theArea.getSize().h,
-                            x: theArea.getInitCoords().x,
-                            y: theArea.getInitCoords().y
-                        });
-                    }
-                } else {
-                    theArea.setCenterPoint({
-                        x: ctx.canvas.width / 2,
-                        y: ctx.canvas.height / 2
-                    });
+                if(CropDataService.hasStored()){
+                    theArea.setSize(CropDataService.load());
                 }
+                else{
+                    if(theArea.getInitCoords()) {
+                            if (self.areaInitIsRelativeToImage) {
+                                var ratio = image.width / canvasDims[0];
+                                theArea.setSize({
+                                    w: theArea.getInitSize().w / ratio,
+                                    h: theArea.getInitSize().h / ratio,
+                                    x: theArea.getInitCoords().x / ratio,
+                                    y: theArea.getInitCoords().y / ratio
+                                });
+                            } else {
+                                theArea.setSize({
+                                    w: theArea.getSize().w,
+                                    h: theArea.getSize().h,
+                                    x: theArea.getInitCoords().x,
+                                    y: theArea.getInitCoords().y
+                                });
+                            }}
+                            else {
+                                theArea.setCenterPoint({
+                                    x: ctx.canvas.width / 2,
+                                    y: ctx.canvas.height / 2
+                                });
+                            }
+                } 
 
             } else {
                 elCanvas.prop('width', 0).prop('height', 0).css({
@@ -2761,7 +2749,7 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
         };
 
         this.getAreaCoords = function() {
-            return theArea.getSize()
+            return theArea.getSize();
         };
 
         this.getArea = function() {
@@ -2994,9 +2982,17 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
         };
 
         this.setAreaInitCoords = function(coords) {
-            if (angular.isUndefined(coords)) {
+             if(CropDataService.hasStored()){
+                var loaded = CropDataService.load();
+                coords = {
+                    x: loaded.x,
+                    y: loaded.y
+                };
+             }
+            else if (angular.isUndefined(coords)) {
                 return;
-            }else{
+            }
+            else{
                 coords = {
                     x: parseInt(coords.x, 10),
                     y: parseInt(coords.y, 10)
@@ -3261,6 +3257,7 @@ crop.factory('cropPubSub', [function() {
         this.trigger = function(name, args) {
             angular.forEach(events[name], function(handler) {
                 handler.call(null, args);
+                console.log("Event: ", name, handler, args);
             });
             return this;
         };
@@ -3443,7 +3440,7 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($time
                 }));
 
             // Sync CropHost with Directive's options
-            scope.$watch('image', function (newVal) {
+            scope.$watch('image', function (newVal, oldVal) {
                 if (newVal) {
                     displayLoading();
                 }
@@ -3452,9 +3449,11 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($time
                     cropHost.setNewImageSource(scope.image);
                 }, 100);
             });
-            scope.$watch('areaType', function () {
-                cropHost.setAreaType(scope.areaType);
-                updateResultImage(scope);
+            scope.$watch('areaType', function (newVal, oldVal) {
+                if(!_.eq(newVal, oldVal)){
+                    cropHost.setAreaType(scope.areaType);
+                    updateResultImage(scope);
+                }
             });
             scope.$watch('areaMinSize', function () {
                 cropHost.setAreaMinSize(scope.areaMinSize);

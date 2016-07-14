@@ -17,6 +17,7 @@ crop.factory('cropPubSub', [function() {
         this.trigger = function(name, args) {
             angular.forEach(events[name], function(handler) {
                 handler.call(null, args);
+                console.log("Event: ", name, handler, args);
             });
             return this;
         };

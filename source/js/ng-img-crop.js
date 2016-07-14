@@ -177,7 +177,7 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($time
 
 
             // Sync CropHost with Directive's options
-            scope.$watch('image', function (newVal) {
+            scope.$watch('image', function (newVal, oldVal) {
                 if (newVal) {
                     displayLoading();
                 }
@@ -186,9 +186,11 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', function ($time
                     cropHost.setNewImageSource(scope.image);
                 }, 100);
             });
-            scope.$watch('areaType', function () {
-                cropHost.setAreaType(scope.areaType);
-                updateResultImage(scope);
+            scope.$watch('areaType', function (newVal, oldVal) {
+                if(!_.eq(newVal, oldVal)){
+                    cropHost.setAreaType(scope.areaType);
+                    updateResultImage(scope);
+                }
             });
             scope.$watch('areaMinSize', function () {
                 cropHost.setAreaMinSize(scope.areaMinSize);
