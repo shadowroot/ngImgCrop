@@ -5,7 +5,7 @@
  * Copyright (c) 2016 undefined
  * License: MIT
  *
- * Generated at Thursday, July 14th, 2016, 10:34:50 PM
+ * Generated at Friday, July 15th, 2016, 9:06:12 AM
  */
 (function() {
 var crop = angular.module('ngImgCrop', []);
@@ -999,6 +999,9 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
             w: 150,
             h: 150
         };
+        if(CropDataService.hasStored()){
+            this._initCoords = this._size = CropDataService.load();
+        }
         this._allowCropResizeOnCorners = false;
 
         this._forceAspectRatio = false;
@@ -1148,6 +1151,10 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     };
 
     CropArea.prototype.setInitSize = function(size) {
+        if(CropDataService.hasStored()){
+            this._initSize = this._size = CropDataService.load();
+            return;
+        }
         this._initSize = this._processSize(size);
         this.setSize(this._initSize);
     };
@@ -1159,7 +1166,7 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     CropArea.prototype.setInitCoords = function(coords) {
         //add h/w-data to coords-object
         if(CropDataService.hasStored()){
-            this._size = CropDataService.load();
+            this._initCoords = this._size = CropDataService.load();
             return;
         }
         coords.h = this.getSize().h;
@@ -2520,10 +2527,7 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
                         h: Math.min(200, ch / 2)
                     });
                 }
-                if(CropDataService.hasStored()){
-                    theArea.setSize(CropDataService.load());
-                }
-                else if(theArea.getInitCoords()) {
+                if(!CropDataService.hasStored() && theArea.getInitCoords()) {
                     if (self.areaInitIsRelativeToImage) {
                         var ratio = image.width / canvasDims[0];
                         theArea.setSize({
@@ -2541,7 +2545,7 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
                         });
                     }
                 }
-                else {
+                else if(!CropDataService.hasStored()) {
                     theArea.setCenterPoint({
                         x: ctx.canvas.width / 2,
                         y: ctx.canvas.height / 2
@@ -3250,7 +3254,6 @@ crop.factory('cropPubSub', [function() {
         this.trigger = function(name, args) {
             angular.forEach(events[name], function(handler) {
                 handler.call(null, args);
-                console.log("Event: ", name, handler, args);
             });
             return this;
         };

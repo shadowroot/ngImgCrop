@@ -150,10 +150,7 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
                         h: Math.min(200, ch / 2)
                     });
                 }
-                if(CropDataService.hasStored()){
-                    theArea.setSize(CropDataService.load());
-                }
-                else if(theArea.getInitCoords()) {
+                if(!CropDataService.hasStored() && theArea.getInitCoords()) {
                     if (self.areaInitIsRelativeToImage) {
                         var ratio = image.width / canvasDims[0];
                         theArea.setSize({
@@ -171,7 +168,7 @@ crop.factory('cropHost', ['$document', '$q', 'cropAreaCircle', 'cropAreaSquare',
                         });
                     }
                 }
-                else {
+                else if(!CropDataService.hasStored()) {
                     theArea.setCenterPoint({
                         x: ctx.canvas.width / 2,
                         y: ctx.canvas.height / 2

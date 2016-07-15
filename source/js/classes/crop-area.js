@@ -20,6 +20,9 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
             w: 150,
             h: 150
         };
+        if(CropDataService.hasStored()){
+            this._initCoords = this._size = CropDataService.load();
+        }
         this._allowCropResizeOnCorners = false;
 
         this._forceAspectRatio = false;
@@ -169,6 +172,10 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     };
 
     CropArea.prototype.setInitSize = function(size) {
+        if(CropDataService.hasStored()){
+            this._initSize = this._size = CropDataService.load();
+            return;
+        }
         this._initSize = this._processSize(size);
         this.setSize(this._initSize);
     };
@@ -180,7 +187,7 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     CropArea.prototype.setInitCoords = function(coords) {
         //add h/w-data to coords-object
         if(CropDataService.hasStored()){
-            this._size = CropDataService.load();
+            this._initCoords = this._size = CropDataService.load();
             return;
         }
         coords.h = this.getSize().h;
