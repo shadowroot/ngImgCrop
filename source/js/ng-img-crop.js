@@ -186,11 +186,9 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', 'cropDataServic
                     cropHost.setNewImageSource(scope.image);
                 }, 100);
             });
-            scope.$watch('areaType', function (newVal, oldVal) {
-                if(!_.eq(newVal, oldVal)){
-                    cropHost.setAreaType(scope.areaType);
-                    updateResultImage(scope);
-                }
+            scope.$watch('areaType', function () {
+                cropHost.setAreaType(scope.areaType);
+                updateResultImage(scope);
             });
             scope.$watch('areaMinSize', function () {
                 cropHost.setAreaMinSize(scope.areaMinSize);
@@ -206,7 +204,7 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', 'cropDataServic
                 cropHost.setAreaInitSize(scope.areaInitSize);
                 updateResultImage(scope);
             });
-            scope.$watch('areaInitCoords', function (newVal, oldVal) {
+            scope.$watch('areaInitCoords', function () {
                     cropHost.setAreaInitCoords(scope.areaInitCoords);
                     cropHost.areaInitIsRelativeToImage = scope.areaInitIsRelativeToImage;
                     updateResultImage(scope);

@@ -5,7 +5,7 @@
  * Copyright (c) 2016 undefined
  * License: MIT
  *
- * Generated at Friday, July 15th, 2016, 9:06:12 AM
+ * Generated at Friday, July 15th, 2016, 9:25:54 AM
  */
 (function() {
 var crop = angular.module('ngImgCrop', []);
@@ -983,14 +983,12 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     var CropArea = function(ctx, events) {
         this._ctx = ctx;
         this._events = events;
-
         this._minSize = {
             x: 0,
             y: 0,
             w: 80,
             h: 80
         };
-
         this._initSize = undefined;
         this._initCoords = undefined;
         this._size = {
@@ -3445,11 +3443,9 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', 'cropDataServic
                     cropHost.setNewImageSource(scope.image);
                 }, 100);
             });
-            scope.$watch('areaType', function (newVal, oldVal) {
-                if(!_.eq(newVal, oldVal)){
-                    cropHost.setAreaType(scope.areaType);
-                    updateResultImage(scope);
-                }
+            scope.$watch('areaType', function () {
+                cropHost.setAreaType(scope.areaType);
+                updateResultImage(scope);
             });
             scope.$watch('areaMinSize', function () {
                 cropHost.setAreaMinSize(scope.areaMinSize);
@@ -3465,7 +3461,7 @@ crop.directive('imgCrop', ['$timeout', 'cropHost', 'cropPubSub', 'cropDataServic
                 cropHost.setAreaInitSize(scope.areaInitSize);
                 updateResultImage(scope);
             });
-            scope.$watch('areaInitCoords', function (newVal, oldVal) {
+            scope.$watch('areaInitCoords', function () {
                     cropHost.setAreaInitCoords(scope.areaInitCoords);
                     cropHost.areaInitIsRelativeToImage = scope.areaInitIsRelativeToImage;
                     updateResultImage(scope);

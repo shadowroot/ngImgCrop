@@ -4,14 +4,12 @@ crop.factory('cropArea', ['cropCanvas', 'cropDataService', function(CropCanvas, 
     var CropArea = function(ctx, events) {
         this._ctx = ctx;
         this._events = events;
-
         this._minSize = {
             x: 0,
             y: 0,
             w: 80,
             h: 80
         };
-
         this._initSize = undefined;
         this._initCoords = undefined;
         this._size = {
